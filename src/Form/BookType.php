@@ -34,6 +34,9 @@ class BookType extends AbstractType
             ->add('pageNumber', NumberType::class)
             ->add('status', EnumType::class, [
                 'class' => BookStatus::class,
+                'choice_label' => function ($status) {
+                    return $status->getLabel();
+                },
             ])
             ->add('editor', EntityType::class, [
                 'class' => Editor::class,

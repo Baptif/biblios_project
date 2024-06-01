@@ -9,22 +9,50 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Repository\AuthorRepository;
+use Pagerfanta\Doctrine\ORM\QueryAdapter;
+use Pagerfanta\Pagerfanta;
 
 #[Route('/admin/author')]
 class AuthorController extends AbstractController
 {
-    #[Route('', name: 'app_admin_author')]
-    public function index(): Response
+    #[Route('', name: 'app_admin_author', methods: ['GET'])]
+    public function index(Request $request, AuthorRepository $repository): Response
     {
+        $dates = [];
+        if ($request->query->has('start')) {
+            $dates['start'] = $request->query->get('start');
+        }
+
+        if ($request->query->has('end')) {
+            $dates['end'] = $request->query->get('end');
+        }
+
+        $authors = Pagerfanta::createForCurrentPageWithMaxPerPage(
+            new QueryAdapter($repository->findByDateOfBirth($dates)),
+            $request->query->getInt('page', 1),
+            10
+        );
+
         return $this->render('admin/author/index.html.twig', [
             'controller_name' => 'AuthorController',
+            'authors' => $authors,
+        ]);
+    }
+
+    #[Route('/{id}', name: 'app_admin_author_show', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function show(?Author $author): Response
+    {
+        return $this->render('admin/author/show.html.twig', [
+            'author' => $author,
         ]);
     }
 
     #[Route('/new', name: 'app_admin_author_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $manager): Response
+    #[Route('/{id}/edit', name: 'app_admin_author_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function new(?Author $author, Request $request, EntityManagerInterface $manager): Response
     {
-        $author = new Author();
+        $author ??= new Author();
         $form = $this->createForm(AuthorType::class, $author);
 
         $form->handleRequest($request);
@@ -32,7 +60,7 @@ class AuthorController extends AbstractController
             $manager->persist($author);
             $manager->flush();
 
-            return $this->redirectToRoute('app_admin_author');
+            return $this->redirectToRoute('app_admin_author_show', ['id' => $author->getId()]);
         }
 
         return $this->render('admin/author/new.html.twig', [

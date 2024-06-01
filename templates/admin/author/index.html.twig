@@ -1,20 +1,35 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello AuthorController!{% endblock %}
+{% block title %}Auteurs{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+<section class="container px-4">
+    <h1>Liste d'auteur</h1>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
-
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>C:/Users/baptd/Desktop/Projets_devs/biblios_project/src/Controller/Admin/AuthorController.php</code></li>
-        <li>Your template at <code>C:/Users/baptd/Desktop/Projets_devs/biblios_project/templates/admin/author/index.html.twig</code></li>
-    </ul>
-</div>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nom</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for author in authors %}
+                <tr>
+                    <td>{{ author.id }}</td>
+                    <td>{{ author.name }}</td>
+                    <td>
+                        <a href="{{ path('app_admin_author_show', {'id': author.id}) }}" class="btn btn-primary">Détail</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="2">Aucun auteur trouvé</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {{ pagerfanta(authors)}}
+</section>
 {% endblock %}
